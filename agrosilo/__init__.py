@@ -1,0 +1,1 @@
+"""Sistema distribuído AgroSilo."""
