@@ -15,6 +15,7 @@ No Checkpoint 1, o cliente conversa com um único servidor na porta padrão 9000
 | agrosilo/server.py | Interface de rede, threads, configuração e logs |
 | agrosilo/client.py | Cliente de terminal, simulação e função reutilizável de comunicação |
 | agrosilo/protocol.py | Delimitação, serialização e leitura TCP |
+| agrosilo/replication.py | Papéis, ordenação, confirmação e reenvio de eventos |
 | agrosilo/service.py e agrosilo/storage.py | Validação, operações de domínio, alertas e persistência |
 | tests/ | Testes automatizados com processos e bancos temporários |
 | docs/ | Relatório de cada etapa e protocolo |

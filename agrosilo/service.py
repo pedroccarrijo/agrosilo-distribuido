@@ -39,13 +39,20 @@ class AgroSilo:
             "consultar_medicoes": self.history,
         }
 
-    def execute(self, request):
+    def parse_request(self, request):
         operation = request.get("operacao")
         data = request.get("dados", {})
         if not isinstance(operation, str) or not isinstance(data, dict):
             raise RequestError("DADOS_INVALIDOS", "Informe operacao (texto) e dados (objeto).")
         if operation not in self.operations:
             raise RequestError("OPERACAO_DESCONHECIDA", "Operação desconhecida.")
+        return operation, data
+
+    def execute(self, request):
+        operation, data = self.parse_request(request)
+        return self.execute_operation(operation, data)
+
+    def execute_operation(self, operation, data):
         with self.storage.connection() as db:
             return self.operations[operation](db, data)
 
