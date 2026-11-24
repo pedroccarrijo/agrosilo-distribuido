@@ -32,6 +32,7 @@ class Storage:
         db.row_factory = sqlite3.Row
         try:
             db.execute("PRAGMA foreign_keys = ON")
+            db.execute("PRAGMA synchronous = FULL")
             with db:
                 yield db
         finally:

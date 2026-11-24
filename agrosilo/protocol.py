@@ -9,6 +9,10 @@ class ProtocolError(ValueError):
     pass
 
 
+class IncompleteFrame(ProtocolError):
+    """O socket fechou antes de receber o delimitador."""
+
+
 def reject_constant(value):
     raise ValueError(f"Constante JSON inválida: {value}")
 
@@ -25,7 +29,7 @@ def receive_message(sock, timeout):
         if not chunk:
             if not frame:
                 return None
-            raise ProtocolError("Conexão encerrada antes do delimitador.")
+            raise IncompleteFrame("Conexão encerrada antes do delimitador.")
         end = chunk.find(b"\n")
         if end >= 0:
             frame.extend(chunk[:end])

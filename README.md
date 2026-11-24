@@ -1,6 +1,6 @@
 # AgroSilo — Sistema Distribuído de Monitoramento de Silos de Grãos
 
-Checkpoint 2 da disciplina de Sistemas Distribuídos. O servidor recebe medições via TCP, registra as leituras em SQLite e retorna o histórico e alertas demonstrativos.
+Checkpoint 3 da disciplina de Sistemas Distribuídos. O servidor recebe medições via TCP, registra as leituras em SQLite e retorna o histórico e alertas demonstrativos.
 
 ## Executar um servidor no Windows
 
@@ -64,9 +64,15 @@ py -3 -m agrosilo.client --port 9001 consultar_silo 1
 
 Use o ID retornado pelo cadastro. As consultas nas duas portas devem mostrar a mesma leitura. Nos terminais dos servidores, acompanhe o envio, a persistência e a confirmação de cada sequência. Uma tentativa de cadastro na porta 9001 retorna `SOMENTE_LEITURA`.
 
-Para demonstrar a perda de disponibilidade de escrita, encerre o secundário com Ctrl+C e tente cadastrar outro silo no primário. O cliente recebe `REPLICA_INDISPONIVEL`. Reinicie o secundário com o mesmo comando e consulte `listar_silos` no primário. Essa consulta dispara a reconciliação do evento pendente. Um cadastro pendente pode aparecer após ela, mesmo que o cliente tenha recebido erro na tentativa original.
+O cliente tenta primeiro o primário. Se uma consulta falhar por timeout ou conexão, ele tenta o secundário automaticamente. Por padrão, usa o mesmo host e a porta 9001. Os flags `--replica-host` e `--replica-port` configuram outro endereço. Use `--sem-failover` para consultar apenas o servidor selecionado. O aviso de failover vai para stderr e o resultado JSON vai para stdout.
+
+Para demonstrar a queda do primário, encerre-o com Ctrl+C. Execute `py -3 -m agrosilo.client --timeout 1 consultar_medicoes 1`. O cliente deve indicar failover e mostrar o histórico. Tente registrar outra medição para observar que a escrita fica indisponível. Reinicie o primário com a mesma porta e banco.
+
+Para demonstrar a queda do secundário, encerre-o com Ctrl+C. As consultas no primário seguem funcionando. Um novo cadastro retorna `REPLICA_INDISPONIVEL` sem gravar a linha. Reinicie o secundário com a mesma porta e banco para restabelecer as escritas. Se a conexão cair no meio de uma escrita, consulte o estado após a recuperação antes de reenviar o pedido.
 
 Para levar dados do modo independente para a dupla, encerre o servidor independente e faça duas cópias consistentes do mesmo SQLite usando a `sqlite3.Connection.backup()`, uma em cada caminho da dupla, antes de iniciar qualquer nó replicado. Use os dois arquivos como par e configure os mesmos limites demonstrativos em ambos. Os servidores recusam um banco já associado a outro papel.
+
+Para atualizar uma dupla do Checkpoint 2, pare os dois processos e reinicie ambos com o código do Checkpoint 3 e os mesmos bancos. Uma pendência do primário permanece no diário e é reconciliada na próxima requisição válida.
 
 ## Testes
 
@@ -82,3 +88,5 @@ A suíte usa portas locais atribuídas pelo sistema e bancos temporários. Ela i
 - [Relatório do Checkpoint 1](docs/RELATORIO_CHECKPOINT_1.md)
 - [Contrato do protocolo TCP](docs/PROTOCOLO.md)
 - [Relatório do Checkpoint 2](docs/RELATORIO_CHECKPOINT_2.md)
+- [Relatório final](docs/RELATORIO_FINAL.md)
+- [Roteiro para a apresentação de até 10 minutos](docs/ROTEIRO_APRESENTACAO.md)

@@ -15,3 +15,11 @@ Pedido `{"operacao":"listar_silos","dados":{}}`. O campo `dados` é opcional e, 
 Para continuar, envie o cursor retornado no campo de paginação correspondente. O cursor vale `null` na última página. Uma medição inclui `id`, `silo_id`, `temperatura`, `umidade`, `registrada_em` em ISO 8601 UTC, `status` (`normal` ou `alerta`), `alertas` (campos que excederam seus limites) e `limites_demonstrativos`. A avaliação usa os limites vigentes no servidor no momento da consulta. Leituras iguais ao limite ficam dentro da faixa demonstrativa.
 
 Erros de aplicação usam `DADOS_INVALIDOS`, `OPERACAO_DESCONHECIDA`, `SILO_INEXISTENTE` ou `ERRO_INTERNO`. O servidor usa `MENSAGEM_INVALIDA` para JSON inválido, quadro grande demais ou EOF após quadro parcial, e `TIMEOUT` se o LF não chegar no prazo. EOF antes de qualquer byte fecha a sessão. O cliente trata problemas de conexão, timeout e respostas ausentes ou inválidas. A escrita concluída no SQLite pode persistir mesmo quando o cliente perde a resposta. Repetir um cadastro ou registro pode gerar outro ID.
+
+## Extensões dos checkpoints 2 e 3
+
+As operações e o enquadramento públicos continuam iguais. No modo replicado, uma escrita pública no secundário recebe `SOMENTE_LEITURA`. O primário retorna `REPLICA_INDISPONIVEL` se bloquear um pedido ou se uma escrita ficar pendente. A mensagem de erro distingue uma nova escrita bloqueada de uma pendência a reconciliar.
+
+No Checkpoint 3, o cliente pode tentar a mesma consulta uma vez no secundário quando o primário apresentar erro de rede, timeout ou encerramento antes de completar a resposta. A resposta JSON válida de qualquer servidor segue o contrato público. Cada operação volta a preferir o primário. Escritas são enviadas apenas ao endereço principal.
+
+A comunicação interna usa `_estado_replica` com `chave` para verificar a sequência aplicada, e `_replicar` com `chave`, `sequencia`, `operacao` e `registro` para aplicar o evento. As duas respostas internas bem-sucedidas têm `{"ok":true,"dados":{"sequencia":1}}`, com a sequência efetiva no lugar de 1.
